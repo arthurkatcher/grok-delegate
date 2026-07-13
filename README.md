@@ -182,6 +182,10 @@ The runtime is plain Node ESM with no production npm dependencies. Tests use Nod
 
 ---
 
+## Security
+
+See [SECURITY.md](SECURITY.md) for how to report vulnerabilities (private advisory / email). Do not file security-sensitive issues in public trackers.
+
 ## License
 
 [MIT](LICENSE) © Arthur Katcher
