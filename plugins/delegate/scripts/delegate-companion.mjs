@@ -216,6 +216,15 @@ async function runEngine(engine, argv) {
     }
   }
 
+  // Flag conflicts first (works even without claude/codex on PATH — CI-friendly).
+  const policy = resolvePolicy(engine, action, options);
+  if (action !== "setup" && policy.errors.length) {
+    const msg = policy.errors.join("; ");
+    output(asJson ? { ok: false, error: msg } : msg, asJson);
+    process.exitCode = 1;
+    return;
+  }
+
   // Shared readiness gate: binary on PATH + login/API key (same for setup and all runs).
   const setup =
     engine === "claude" ? buildClaudeSetupReport(cwd) : buildCodexSetupReport(cwd);
@@ -247,14 +256,6 @@ async function runEngine(engine, argv) {
         false
       );
     }
-    process.exitCode = 1;
-    return;
-  }
-
-  const policy = resolvePolicy(engine, action, options);
-  if (policy.errors.length) {
-    const msg = policy.errors.join("; ");
-    output(asJson ? { ok: false, error: msg } : msg, asJson);
     process.exitCode = 1;
     return;
   }
