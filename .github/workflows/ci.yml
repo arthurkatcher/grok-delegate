@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: plugins/delegate tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: plugins/delegate
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: plugins/delegate/package.json
+
+      - name: Install (if lockfile present)
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          elif [ -f package.json ]; then
+            # No production deps today; still resolve dev/scripts cleanly
+            npm install --no-fund --no-audit
+          fi
+
+      - name: Test
+        run: npm test
