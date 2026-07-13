@@ -8,7 +8,7 @@ This repository is the **Grok Build Extras** marketplace. The installable plugin
 
 [![Demo thumbnail — click for full video](assets/demo-poster.jpg)](https://github.com/arthurkatcher/grok-delegate/releases/download/v0.1.0/demo.mp4)
 
-**[▶ Full demo (MP4, ~54s)](https://github.com/arthurkatcher/grok-delegate/releases/download/v0.1.0/demo.mp4)** · also in-repo as [`assets/demo.mp4`](assets/demo.mp4)
+**[▶ Full demo (MP4, ~49s)](https://github.com/arthurkatcher/grok-delegate/releases/download/v0.1.0/demo.mp4)** · also in-repo as [`assets/demo.mp4`](assets/demo.mp4)
 
 
 [![Grok Build](https://img.shields.io/badge/Grok_Build-plugin-111111)](https://grok.x.ai)
