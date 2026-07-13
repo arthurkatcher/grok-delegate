@@ -2,9 +2,9 @@
 
 A **Grok Build plugin** that runs **Claude Code** or **Codex** for you as a background task.
 
-You stay in Grok. The other CLI does the work. Tools stream into the task log. Cancel the task → the agent process dies with it.
+You stay in Grok. The other CLI does the work. Tools stream into the task log. Cancel the task and the agent process dies with it.
 
-Marketplace: **Grok Build Extras** (this private repo).
+This repository is the private **Grok Build Extras** marketplace. The installable plugin itself lives under `plugins/delegate/`.
 
 [![Grok Build](https://img.shields.io/badge/Grok_Build-plugin-111111)](https://grok.x.ai)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-local_CLI-D97757)](https://docs.anthropic.com/en/docs/claude-code)
@@ -12,43 +12,49 @@ Marketplace: **Grok Build Extras** (this private repo).
 [![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](plugins/delegate/.grok-plugin/plugin.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-## Use
+---
+
+## What you get
+
+Two slash commands — `/delegate-claude` and `/delegate-codex` — that hand a job to the matching local CLI without leaving Grok. Progress shows up in the background-task pane the same way any other long Grok job does: `starting`, `thinking`, `tool`, `writing`, `completed`. When the run finishes, the answer is in that task. When you cancel it, the companion stops the whole engine process group so nothing is left running in the background.
+
+Both commands share the same actions:
+
+| Action | Intent | Can write files? |
+|--------|--------|------------------|
+| `setup` | Check that the CLI is installed, authenticated, and what models it knows about | No |
+| `overview` | Map the repo — purpose, layout, entry points | No |
+| `review` | Review the current git scope for concrete problems | No |
+| `adversarial` | Same as review, with a deliberately skeptical brief | No |
+| `rescue` | Implement a specific change | Yes, under the defaults below |
+
+Put flags before `--`. Everything after `--` is focus text for the delegate, never options. Models and effort levels are read from your installed CLIs at runtime, not hard-coded in the plugin.
 
 ```text
 /delegate-claude setup
 /delegate-codex setup
 
 /delegate-claude overview --model sonnet --effort low --trust-project --
-/delegate-codex review --model gpt-5.6-sol --effort high --
+/delegate-codex review --model gpt-5.6-sol --effort high -- focus on auth
 
-/delegate-claude rescue --model opus --effort high -- fix the flaky test
+/delegate-claude rescue --model opus --effort high -- fix the flaky pagination test
 /delegate-codex rescue -- implement the retry helper
 ```
 
-Actions: `setup` · `overview` · `review` · `adversarial` · `rescue`
+Common flags for both engines: `--model`, `--effort`, `--cwd`, `--read-only`, `--resume`, `--yolo`. Claude also understands `--trust-project`, `--allowed-tools`, `--disallowed-tools`, `--max-turns`, and `--stream-partial`. Codex also understands `--sandbox`, `--approval`, `--search`, and `--ephemeral`.
 
-Flags go before `--`. Focus text goes after. Expand the Grok background task for the live stream (`starting` / `thinking` / `tool` / `writing` / `completed`). Cancel that task to kill the whole engine process group.
-
-| Action | What it does | Writes? |
-|--------|----------------|---------|
-| `setup` | Check CLI, auth, version, live model catalog | No |
-| `overview` | Map the repo, entry points, architecture | No |
-| `review` | Review the current git scope | No |
-| `adversarial` | Skeptical second pass | No |
-| `rescue` | Implement a concrete task | Yes (constrained) |
-
-Useful flags: `--model`, `--effort`, `--cwd`, `--read-only`, `--resume`, `--yolo`. Claude also: `--trust-project`, `--allowed-tools`, `--disallowed-tools`, `--max-turns`, `--stream-partial`. Codex also: `--sandbox`, `--approval`, `--search`, `--ephemeral`.
-
-Models and efforts come from the installed CLIs at runtime (not a frozen list in the plugin). Claude discovery never spends agent tokens unless you set `CLAUDE_MODELS_AGENT=1`.
+---
 
 ## Install
 
-Private repo — your GitHub user needs access to `arthurkatcher/grok-delegate`, and `git` / `gh` must already be authenticated on the machine that runs Grok.
+You need access to the private GitHub repo `arthurkatcher/grok-delegate`, and `git` or `gh` already authenticated on the machine that runs Grok. The plugin install does **not** log you into Claude, Codex, or Grok itself — those stay separate.
 
 ```bash
 grok plugin marketplace add arthurkatcher/grok-delegate
 grok plugin install arthurkatcher/grok-delegate#plugins/delegate --trust
 ```
+
+Then enable it (keep any other plugins you already have listed):
 
 ```toml
 # ~/.grok/config.toml
@@ -56,14 +62,16 @@ grok plugin install arthurkatcher/grok-delegate#plugins/delegate --trust
 enabled = ["grok-delegate"]
 ```
 
-Restart Grok (or reload plugins), then:
+Restart Grok or reload plugins, and check:
 
 ```bash
 grok plugin list
 grok plugin details grok-delegate
 ```
 
-If the shorthand clone fails auth, use an explicit remote:
+The `#plugins/delegate` suffix matters. This git root is a marketplace catalog; the package Grok should trust and run is the subdirectory. `--trust` is required so the companion scripts are allowed to execute.
+
+If the GitHub shorthand cannot clone, add the marketplace with a full remote instead:
 
 ```bash
 grok plugin marketplace add https://github.com/arthurkatcher/grok-delegate.git
@@ -71,88 +79,96 @@ grok plugin marketplace add https://github.com/arthurkatcher/grok-delegate.git
 grok plugin marketplace add git@github.com:arthurkatcher/grok-delegate.git
 ```
 
-Update later:
+To pick up later releases:
 
 ```bash
 grok plugin marketplace update
 grok plugin update grok-delegate
 ```
 
-The `#plugins/delegate` bit is required because this repo is a **marketplace root**; the installable plugin lives in that subdirectory. `--trust` allows the companion scripts to run.
+### What else has to be on the machine
 
-## What you need
+- Grok Build with plugins enabled  
+- Node.js 18 or newer  
+- Linux or macOS (Windows only if you set `GROK_DELEGATE_ALLOW_WINDOWS=1`)  
+- `claude` and/or `codex` on your `PATH`, already signed in (`claude auth login`, `codex login`, or the usual API keys)  
+- Codex 0.144+ if you want GPT-5.6 Sol / Terra / Luna model ids  
 
-- Access to private `arthurkatcher/grok-delegate`
-- Grok Build with plugins
-- Node.js 18+
-- Linux or macOS (Windows only if `GROK_DELEGATE_ALLOW_WINDOWS=1`)
-- `claude` and/or `codex` on `PATH`, already authenticated
-- Codex ≥ 0.144 if you want GPT-5.6 Sol / Terra / Luna ids
-- Plugin installed with `--trust` and listed in `plugins.enabled`
+On a new laptop, start with `/delegate-claude setup` or `/delegate-codex setup`. Every other action runs the **same** readiness check first. If the binary is missing or you are not logged in, the companion prints the setup-style next steps and does not start the engine.
 
-Auth is **not** part of the plugin install. Grok login, GitHub access, and `claude auth login` / `codex login` (or API keys) are separate. Run `setup` first on a new machine — if the binary or login is missing, every action prints the same next steps and does **not** spawn the engine.
+---
 
-## Defaults
+## Defaults and safety
 
-Read work stays read-only. Write work is narrow unless you open it up.
+Read work is read-only. Write work is intentionally narrow unless you open it up.
 
-| Action | Claude | Codex |
-|--------|--------|-------|
-| `overview` / `review` / `adversarial` | Hermetic `--bare`, `dontAsk`, read tools | OS `read-only` sandbox |
-| `rescue` | File tools only (Read/Edit/Write/Glob/Grep) — **no Bash** | OS `workspace-write` |
-| Full power | `--allowed-tools '…,Bash'` or `--yolo` | `--yolo` |
+| Action | Claude default | Codex default |
+|--------|----------------|---------------|
+| `overview`, `review`, `adversarial` | Hermetic `--bare`, permission mode `dontAsk`, read tools only | OS `read-only` sandbox |
+| `rescue` | File tools only — Read, Edit, Write, Glob, Grep — **no Bash** | OS `workspace-write` sandbox |
+| Full power | Explicit `--allowed-tools` including Bash, or `--yolo` | Explicit `--yolo` |
 
-Why no Bash on Claude rescue by default? Even “just git” can `reset --hard`, `clean -fdx`, force-push, or delete branches. Shell is opt-in.
-
-Other hard edges:
-
-- Claude OAuth / Max: add `--trust-project` on read actions. Hermetic `--bare` only sees `ANTHROPIC_API_KEY` (not your Max login).
-- Free text after `--` cannot inject flags. Unknown actions/flags fail closed. Prefer `--payload-file` for messy paste.
-- Job state under `~/.local/share/grok-delegate` (mode `0700`), not world-writable tmp.
-- Cancel Grok task → companion `SIGTERM`s the engine process group (then `SIGKILL` if needed). No orphaned agents.
-- Codex uses `approval_policy=never` inside the chosen sandbox; `--yolo` is intentionally loud.
-
-Need shell on Claude rescue:
+Claude rescue does not get a shell by default on purpose. Even “just git” can force-push, `reset --hard`, or wipe untracked files. If you really need shell for a rescue, opt in:
 
 ```text
-/delegate-claude rescue --allowed-tools 'Read,Edit,Write,Glob,Grep,Bash' -- fix it and run the targeted tests
+/delegate-claude rescue --allowed-tools 'Read,Edit,Write,Glob,Grep,Bash' -- fix it and run the tests
 ```
+
+A few other rules that matter in practice:
+
+If you use Claude Max or OAuth rather than `ANTHROPIC_API_KEY`, pass `--trust-project` on read-only actions. Hermetic `--bare` does not see that login.
+
+Anything after `--` cannot turn into flags. Unknown actions and options fail closed. For awkward multi-line paste, use `--payload-file` instead of fighting the shell.
+
+Job state lives under `~/.local/share/grok-delegate` with private permissions, not in a world-writable temp directory.
+
+Canceling the Grok task sends `SIGTERM` to the engine process group (and escalates if needed). You should not be left with orphaned Claude or Codex processes.
+
+Codex runs with `approval_policy=never` inside the sandbox you chose. `--yolo` turns both approvals and the sandbox off — use it only when you mean it.
+
+---
 
 ## How it works
 
+Under the hood the slash command is a thin host around one long-lived companion process:
+
 ```text
 /delegate-claude or /delegate-codex
-  → one Grok background task
-  → node …/delegate-companion.mjs <engine> --wait …
-  → local `claude` (stream-json) or `codex exec --json`
-  → progress lines on stdout → Grok task log
-  → final result back in the task
+    → Grok starts a background task
+    → node …/delegate-companion.mjs <claude|codex> --wait …
+    → local Claude (stream-json) or Codex (exec --json)
+    → progress lines on stdout → Grok task log
+    → final result in the same task
 ```
 
-The companion owns argv validation, live model discovery, policy, process lifecycle, stream mapping, and optional job state.
+The companion owns argument validation, live model discovery, permission policy, process lifecycle, and turning engine events into the short progress lines you see in the task pane.
 
-Low-level form (debugging / skills):
+If you are debugging the plugin contract from a skill or shell, the same entrypoint looks like this:
 
 ```bash
 node "${GROK_PLUGIN_ROOT}/scripts/delegate-companion.mjs" claude --wait \
   --model sonnet --effort low --trust-project \
-  -- overview -- "Map purpose, layout, entry points."
+  -- overview -- "Map purpose, layout, and entry points."
 ```
 
-## Layout
+---
+
+## Repository layout
 
 ```text
-grok-delegate/                      marketplace root
-├── marketplace.json                Grok Build Extras
-├── plugins/delegate/               installable plugin
-│   ├── .grok-plugin/plugin.json
-│   ├── commands/                   /delegate-claude, /delegate-codex
-│   ├── skills/delegate-runtime/    host contract for Grok
-│   ├── scripts/                    companion + engines
+grok-delegate/                   marketplace root (this repo)
+├── marketplace.json             Grok Build Extras catalog
+├── plugins/delegate/            the installable plugin
+│   ├── .grok-plugin/            manifest
+│   ├── commands/                /delegate-claude, /delegate-codex
+│   ├── skills/delegate-runtime/ how Grok should launch the companion
+│   ├── scripts/                 companion + Claude/Codex adapters
 │   └── tests/
 ├── LICENSE
 └── README.md
 ```
+
+---
 
 ## Development
 
@@ -162,7 +178,9 @@ cd grok-delegate/plugins/delegate
 npm test
 ```
 
-Pure Node ESM, no production npm deps. Tests use `node --test`.
+The runtime is plain Node ESM with no production npm dependencies. Tests use Node’s built-in test runner (`node --test`).
+
+---
 
 ## License
 
