@@ -39,3 +39,29 @@ jobs:
 
       - name: Test
         run: npm test
+
+  # Grok's built-in plugin package check (manifest + component layout).
+  # Not a full runtime smoke — that still needs a real Grok session + CLIs.
+  validate-plugin:
+    name: grok plugin validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Grok CLI
+        env:
+          # Official installer: GROK_BIN_DIR (default ~/.grok/bin)
+          GROK_BIN_DIR: ${{ runner.temp }}/grok-bin
+        run: |
+          mkdir -p "$GROK_BIN_DIR"
+          curl -fsSL https://x.ai/cli/install.sh | bash
+          echo "$GROK_BIN_DIR" >> "$GITHUB_PATH"
+          "$GROK_BIN_DIR/grok" --version
+
+      - name: Validate plugin manifest
+        env:
+          GROK_BIN_DIR: ${{ runner.temp }}/grok-bin
+        run: |
+          export PATH="$GROK_BIN_DIR:$PATH"
+          grok plugin validate plugins/delegate
