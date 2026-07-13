@@ -1,14 +1,14 @@
 # grok-delegate
 
-[![Demo: install and run grok-delegate](docs/demo-preview.gif)](https://github.com/arthurkatcher/grok-delegate/releases/download/v0.1.0/demo.mp4)
-
-**[▶ Full demo (MP4, ~80s)](https://github.com/arthurkatcher/grok-delegate/releases/download/v0.1.0/demo.mp4)** · also in-repo as [`docs/demo.mp4`](docs/demo.mp4)
-
-**grok-delegate** is a Grok Build plugin that hands work to local **Claude Code** or **Codex** while you stay in the Grok session. 
+**grok-delegate** is a Grok Build plugin that hands work to local **Claude Code** or **Codex** while you stay in the Grok session.
 
 The delegate runs as a normal background task: tools and progress stream into the task log, the result comes back when it finishes, and canceling the task stops the engine’s whole process group so nothing is left orphaned.
 
 This repository is the **Grok Build Extras** marketplace. The installable plugin package is under `plugins/delegate/`.
+
+[![Demo: install and run grok-delegate](docs/demo-preview.gif)](https://github.com/arthurkatcher/grok-delegate/releases/download/v0.1.0/demo.mp4)
+
+**[▶ Full demo (MP4, ~80s)](https://github.com/arthurkatcher/grok-delegate/releases/download/v0.1.0/demo.mp4)** · also in-repo as [`docs/demo.mp4`](docs/demo.mp4)
 
 [![Grok Build](https://img.shields.io/badge/Grok_Build-plugin-111111)](https://grok.x.ai)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-local_CLI-D97757)](https://docs.anthropic.com/en/docs/claude-code)
