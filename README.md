@@ -1,8 +1,8 @@
 # grok-delegate
 
-<video src="docs/demo.mp4" controls playsinline width="100%" poster="">
-  <a href="docs/demo.mp4">Watch the demo (MP4)</a>
-</video>
+[![Demo: install and run grok-delegate](docs/demo-preview.gif)](https://github.com/arthurkatcher/grok-delegate/releases/download/v0.1.0/demo.mp4)
+
+**[▶ Full demo (MP4, ~80s)](https://github.com/arthurkatcher/grok-delegate/releases/download/v0.1.0/demo.mp4)** · also in-repo as [`docs/demo.mp4`](docs/demo.mp4)
 
 **grok-delegate** is a Grok Build plugin that hands work to local **Claude Code** or **Codex** while you stay in the Grok session. 
 
