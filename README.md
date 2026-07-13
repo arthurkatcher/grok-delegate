@@ -1,5 +1,9 @@
 # grok-delegate
 
+<video src="docs/demo.mp4" controls playsinline width="100%" poster="">
+  <a href="docs/demo.mp4">Watch the demo (MP4)</a>
+</video>
+
 **grok-delegate** is a Grok Build plugin that hands work to local **Claude Code** or **Codex** while you stay in the Grok session. 
 
 The delegate runs as a normal background task: tools and progress stream into the task log, the result comes back when it finishes, and canceling the task stops the engine’s whole process group so nothing is left orphaned.
