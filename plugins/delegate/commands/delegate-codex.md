@@ -8,9 +8,9 @@ Delegate to **local OpenAI Codex CLI**. Models/efforts from live `codex debug mo
 
 ## Launch (required)
 
-Use **exactly one** `run_terminal_command` with **`background: true`**.
+Use **exactly one** `run_terminal_command` with **`background: true`** and **`timeout: 0`** (or a very high timeout) so the host does not SIGTERM the companion after ~20s.
 
-Flags before free text; use `--` before focus. Prefer `--payload-file` for messy paste.
+Flags before free text; use `--` before focus. Prefer `--payload-file` for messy paste. Prefer **`--cwd`** at a real project/repo (not `$HOME`).
 
 ```bash
 node "${GROK_PLUGIN_ROOT}/scripts/delegate-companion.mjs" codex --wait --model gpt-5.6-sol --effort ultra --sandbox read-only -- review -- "focus text"
@@ -19,6 +19,8 @@ node "${GROK_PLUGIN_ROOT}/scripts/delegate-companion.mjs" codex --wait --model g
 - Expand the **Grok task** for live tools.
 - Cancel the Grok task → stops Codex process tree.
 - Do **not** poll status into chat.
+
+If `cwd` is **not** a git work tree, the companion auto-passes **`--skip-git-repo-check`** so Codex does not refuse `$HOME`/non-repo dirs on first launch.
 
 ## Sandbox
 

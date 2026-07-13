@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { parseArgs } from "../../scripts/lib/args.mjs";
-import { resolvePolicy, isValidAction } from "../../scripts/lib/policy.mjs";
+import {
+  resolvePolicy,
+  isValidAction,
+  adjustClaudePolicyForAuth,
+  resolveCodexSkipGitRepoCheck
+} from "../../scripts/lib/policy.mjs";
 import { buildClaudeArgs } from "../../scripts/lib/engines/claude.mjs";
 import { buildCodexArgs } from "../../scripts/lib/engines/codex.mjs";
 import { resolveModelAgainstCatalog } from "../../scripts/lib/models/discover.mjs";
@@ -67,6 +72,75 @@ describe("resolvePolicy", () => {
     const p = resolvePolicy("claude", "review", { "trust-project": true });
     assert.equal(p.bare, false);
     assert.equal(p.hermetic, false);
+  });
+});
+
+describe("adjustClaudePolicyForAuth", () => {
+  it("keeps bare when API key is present", () => {
+    const base = resolvePolicy("claude", "overview", {});
+    const { policy, error, note } = adjustClaudePolicyForAuth(
+      base,
+      { env: { hasApiKey: true } },
+      {}
+    );
+    assert.equal(policy.bare, true);
+    assert.equal(error, null);
+    assert.equal(note, null);
+  });
+
+  it("auto-relaxes bare for Max/OAuth without API key", () => {
+    const base = resolvePolicy("claude", "overview", {});
+    const { policy, error, note } = adjustClaudePolicyForAuth(
+      base,
+      { loggedIn: true, env: { hasApiKey: false, hasOauthToken: false } },
+      {}
+    );
+    assert.equal(error, null);
+    assert.equal(policy.bare, false);
+    assert.equal(policy.hermetic, false);
+    assert.match(note || "", /Max\/OAuth|ANTHROPIC_API_KEY/i);
+  });
+
+  it("hard-fails when user forced --bare without API key", () => {
+    const base = resolvePolicy("claude", "overview", { bare: true });
+    const { error } = adjustClaudePolicyForAuth(
+      base,
+      { env: { hasApiKey: false } },
+      { bare: true }
+    );
+    assert.match(error || "", /--bare requires ANTHROPIC_API_KEY/i);
+  });
+});
+
+describe("resolveCodexSkipGitRepoCheck", () => {
+  it("honors explicit skip flag", () => {
+    const r = resolveCodexSkipGitRepoCheck("/tmp", { "skip-git-repo-check": true }, () => true);
+    assert.equal(r.skip, true);
+    assert.equal(r.auto, false);
+  });
+
+  it("auto-skips outside git work tree", () => {
+    const r = resolveCodexSkipGitRepoCheck("/home/user", {}, () => false);
+    assert.equal(r.skip, true);
+    assert.equal(r.auto, true);
+  });
+
+  it("does not auto-skip inside git work tree", () => {
+    const r = resolveCodexSkipGitRepoCheck("/repo", {}, () => true);
+    assert.equal(r.skip, false);
+    assert.equal(r.auto, false);
+  });
+});
+
+describe("buildCodexArgs skip-git-repo-check", () => {
+  it("includes --skip-git-repo-check when requested", () => {
+    const args = buildCodexArgs({
+      action: "overview",
+      prompt: "hi",
+      write: false,
+      skipGitRepoCheck: true
+    });
+    assert.ok(args.includes("--skip-git-repo-check"));
   });
 });
 

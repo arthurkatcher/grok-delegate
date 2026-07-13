@@ -49,7 +49,7 @@ Common flags for both engines: `--model`, `--effort`, `--cwd`, `--read-only`, `-
 
 See [Grok plugins docs](https://docs.x.ai/build/features/skills-plugins-marketplaces) for how plugins and marketplaces work in Grok Build.
 
-You need access to the private GitHub repo `arthurkatcher/grok-delegate`, and `git` or `gh` already authenticated on the machine that runs Grok. The plugin install does **not** log you into Claude, Codex, or Grok itself — those stay separate.
+You need `git` or `gh` available so Grok can clone `arthurkatcher/grok-delegate`. The plugin install does **not** log you into Claude, Codex, or Grok itself — those stay separate.
 
 ```bash
 grok plugin marketplace add arthurkatcher/grok-delegate
@@ -118,7 +118,7 @@ Claude rescue does not get a shell by default on purpose. Even “just git” ca
 
 A few other rules that matter in practice:
 
-If you use Claude Max or OAuth rather than `ANTHROPIC_API_KEY`, pass `--trust-project` on read-only actions. Hermetic `--bare` does not see that login.
+If you use Claude Max or OAuth rather than `ANTHROPIC_API_KEY`, RO actions **auto-skip hermetic `--bare`** (same practical result as `--trust-project`) so first launch works. Pass explicit `--bare` only when you have an API key and want hermetic isolation. Prefer `--cwd` at a real project — not `$HOME`. Outside a git work tree, Codex auto-adds `--skip-git-repo-check`.
 
 Anything after `--` cannot turn into flags. Unknown actions and options fail closed. For awkward multi-line paste, use `--payload-file` instead of fighting the shell.
 

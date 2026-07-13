@@ -24,6 +24,17 @@ export function resolveWorkspaceRoot(cwdOption) {
   return start;
 }
 
+/** True when `dir` is inside a git work tree (not necessarily the repo root). */
+export function isGitWorkTree(dir) {
+  const start = path.resolve(dir || process.cwd());
+  if (!fs.existsSync(start)) return false;
+  const r = runCommand("git", ["rev-parse", "--is-inside-work-tree"], {
+    cwd: start,
+    timeout: 5_000
+  });
+  return Boolean(r.ok && String(r.stdout || "").trim() === "true");
+}
+
 export function pluginRootFromScript(importMetaUrl) {
   // scripts/lib/*.mjs → scripts → plugin root
   return path.resolve(path.dirname(fileURLToPath(importMetaUrl)), "../..");

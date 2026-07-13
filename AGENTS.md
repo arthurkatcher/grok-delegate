@@ -42,11 +42,12 @@ SECURITY.md · CHANGELOG.md · CONTRIBUTING.md · README.md
 
 1. **Fail closed** — unknown actions/flags exit non-zero; free text after `--` cannot inject flags.
 2. **Claude rescue = no Bash by default** — file tools only; shell/git only via explicit `--allowed-tools` or `--yolo`.
-3. **Read actions stay RO** — Claude hermetic/`dontAsk`; Codex OS `read-only` unless user opts out.
+3. **Read actions stay RO** — Claude hermetic/`dontAsk` when API key is set; **Max/OAuth without a key auto-drops `--bare`**. Codex OS `read-only` unless user opts out; **auto `--skip-git-repo-check` outside git**.
 4. **Preflight** — every non-setup action checks binary + auth; same next steps as `setup` if not ready. Policy conflicts run **before** readiness.
-5. **Cancel kills process group** — do not regress `child-lifecycle` / SIGTERM on Grok task cancel.
-6. **No secrets in git** — no keys, tokens, job DBs, or real credentialed configs.
-7. **Config vs product** — this is a Grok **plugin**, not Meta MCP Manager; do not import meta-manager layout into this tree.
+5. **Host launch** — Grok background task must use `timeout: 0` (or very high); default ~20s cancels long runs.
+6. **Cancel kills process group** — do not regress `child-lifecycle` / SIGTERM on Grok task cancel.
+7. **No secrets in git** — no keys, tokens, job DBs, or real credentialed configs.
+8. **Config vs product** — this is a Grok **plugin**, not Meta MCP Manager; do not import meta-manager layout into this tree.
 
 ## How to work here
 

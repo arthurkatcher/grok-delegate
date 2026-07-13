@@ -4,6 +4,70 @@
 
 const ACTIONS = new Set(["setup", "overview", "review", "adversarial", "rescue"]);
 
+/**
+ * Claude hermetic `--bare` only sees API keys, not Max/OAuth.
+ * When the user is logged in via Max but has no key, auto-relax bare
+ * unless they explicitly passed `--bare`.
+ *
+ * @param {ReturnType<typeof resolvePolicy>} policy
+ * @param {{ loggedIn?: boolean, env?: { hasApiKey?: boolean, hasAuthToken?: boolean, hasOauthToken?: boolean } }} auth
+ * @param {Record<string, unknown>} options raw CLI options
+ * @returns {{ policy: typeof policy, error: string|null, note: string|null }}
+ */
+export function adjustClaudePolicyForAuth(policy, auth = {}, options = {}) {
+  if (!policy?.bare) {
+    return { policy, error: null, note: null };
+  }
+
+  const hasKey = Boolean(auth.env?.hasApiKey || auth.env?.hasAuthToken);
+  if (hasKey) {
+    return { policy, error: null, note: null };
+  }
+
+  // Explicit --bare with no API key → still hard-fail (user asked for hermetic).
+  if (options.bare === true) {
+    return {
+      policy,
+      error:
+        "--bare requires ANTHROPIC_API_KEY (or apiKeyHelper); OAuth/Max is not read in bare mode.",
+      note: null
+    };
+  }
+
+  // Default RO hermetic: first-launch Max/OAuth users should not hard-fail.
+  // Keep permissionMode / tool allowlists; only drop --bare.
+  return {
+    policy: {
+      ...policy,
+      bare: false,
+      hermetic: false,
+      trustProject: true
+    },
+    error: null,
+    note:
+      "Note: hermetic --bare needs ANTHROPIC_API_KEY; using Max/OAuth-compatible mode (no --bare). Pass --trust-project to silence this, or set an API key + --bare for hermetic RO."
+  };
+}
+
+/**
+ * Codex refuses non-git / untrusted cwds unless --skip-git-repo-check.
+ * Auto-enable outside a git work tree; honor explicit flag.
+ *
+ * @param {string} cwd
+ * @param {Record<string, unknown>} options
+ * @param {(dir: string) => boolean} [isGit]
+ */
+export function resolveCodexSkipGitRepoCheck(cwd, options = {}, isGit = null) {
+  if (options["skip-git-repo-check"]) return { skip: true, auto: false };
+  // Allow forcing strict git-only if we add a flag later; for now only auto.
+  if (typeof isGit === "function") {
+    const inGit = isGit(cwd);
+    if (!inGit) return { skip: true, auto: true };
+    return { skip: false, auto: false };
+  }
+  return { skip: Boolean(options["skip-git-repo-check"]), auto: false };
+}
+
 export function listActions() {
   return [...ACTIONS];
 }

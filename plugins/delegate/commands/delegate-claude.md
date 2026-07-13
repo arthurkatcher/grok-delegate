@@ -8,7 +8,7 @@ Delegate to **local Claude Code**. Models/efforts are discovered live from the i
 
 ## Launch (required)
 
-Use **exactly one** `run_terminal_command` with **`background: true`**.
+Use **exactly one** `run_terminal_command` with **`background: true`** and **`timeout: 0`** (or a very high timeout) so the host does not SIGTERM the companion after ~20s.
 
 Put **flags before free text**. Use `--` before focus so paste cannot inject flags.
 Do **not** unquote free-form text into the shell — pass as separate argv tokens after `--`.
@@ -33,9 +33,11 @@ Payload shape: `{ "positionals": ["review", "focus…"], "options": { "model": "
 
 | Action | Default |
 |--------|---------|
-| overview / review / adversarial | Hermetic `--bare` + read tools (`dontAsk`); use `--trust-project` to load project hooks/MCP |
+| overview / review / adversarial | Prefer hermetic `--bare` + read tools (`dontAsk`) when `ANTHROPIC_API_KEY` is set; **Max/OAuth without a key auto-drops `--bare`** (same practical mode as `--trust-project`) so first launch works |
 | rescue | `acceptEdits` + **file tools only** (Read/Edit/Write/Glob/Grep) — **no Bash** |
 | Shell / git CLI | Explicit `--allowed-tools '…,Bash(…)'` or full `--yolo` |
+
+Pass explicit `--bare` only if you have an API key and want to force hermetic (hard-fails without a key). Prefer `--cwd` at a real project, not `$HOME`.
 
 ## Auth / preflight
 

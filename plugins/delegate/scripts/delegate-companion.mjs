@@ -18,10 +18,16 @@ import {
   CODEX_VALUE_OPTIONS,
   CODEX_BOOLEAN_OPTIONS
 } from "./lib/args.mjs";
-import { resolveWorkspaceRoot } from "./lib/workspace.mjs";
+import { isGitWorkTree, resolveWorkspaceRoot } from "./lib/workspace.mjs";
 import { resolveReviewContext } from "./lib/git.mjs";
 import { installCancelHandlers } from "./lib/child-lifecycle.mjs";
-import { isValidAction, listActions, resolvePolicy } from "./lib/policy.mjs";
+import {
+  adjustClaudePolicyForAuth,
+  isValidAction,
+  listActions,
+  resolveCodexSkipGitRepoCheck,
+  resolvePolicy
+} from "./lib/policy.mjs";
 import {
   buildClaudeSetupReport,
   buildClaudeArgs,
@@ -260,20 +266,30 @@ async function runEngine(engine, argv) {
     return;
   }
 
-  // Bare + OAuth only → fail if bare
-  if (engine === "claude" && policy.bare) {
-    const auth = setup.auth || {};
-    if (!auth.env?.hasApiKey && !auth.env?.hasAuthToken) {
-      const msg =
-        "--bare requires ANTHROPIC_API_KEY (or apiKeyHelper); OAuth/Max is not read in bare mode.";
-      if (!auth.env?.hasOauthToken) {
-        // still fail if no api key
-      }
-      if (!auth.env?.hasApiKey && !auth.env?.hasAuthToken) {
-        output(asJson ? { ok: false, error: msg } : msg, asJson);
-        process.exitCode = 1;
-        return;
-      }
+  // Claude: hermetic --bare cannot use Max/OAuth — auto-relax unless user forced --bare.
+  let effectivePolicy = policy;
+  if (engine === "claude") {
+    const adj = adjustClaudePolicyForAuth(policy, setup.auth || {}, options);
+    if (adj.error) {
+      output(asJson ? { ok: false, error: adj.error } : adj.error, asJson);
+      process.exitCode = 1;
+      return;
+    }
+    effectivePolicy = adj.policy;
+    if (adj.note && !asJson) {
+      process.stderr.write(`${adj.note}\n`);
+    }
+  }
+
+  // Codex: outside a git work tree, auto --skip-git-repo-check (home dir first-launch).
+  let skipGitRepoCheck = Boolean(options["skip-git-repo-check"]);
+  if (engine === "codex") {
+    const gitSkip = resolveCodexSkipGitRepoCheck(cwd, options, isGitWorkTree);
+    skipGitRepoCheck = gitSkip.skip;
+    if (gitSkip.auto && !asJson) {
+      process.stderr.write(
+        "Note: cwd is not a git work tree — passing --skip-git-repo-check so Codex can run (prefer --cwd <repo>).\n"
+      );
     }
   }
 
@@ -332,7 +348,7 @@ async function runEngine(engine, argv) {
           scopeSummary: [scopeSummary, diffExcerpt && `\nDiff excerpt:\n${diffExcerpt}`]
             .filter(Boolean)
             .join("\n"),
-          write: policy.write
+          write: effectivePolicy.write
         })
       : buildCodexPrompt({
           action,
@@ -342,7 +358,7 @@ async function runEngine(engine, argv) {
           scopeSummary: [scopeSummary, diffExcerpt && `\nDiff excerpt:\n${diffExcerpt}`]
             .filter(Boolean)
             .join("\n"),
-          write: policy.write
+          write: effectivePolicy.write
         });
 
   let lastMessagePath = null;
@@ -359,12 +375,12 @@ async function runEngine(engine, argv) {
           prompt,
           model,
           effort,
-          bare: policy.bare,
+          bare: effectivePolicy.bare,
           maxTurns: options["max-turns"] ? Number(options["max-turns"]) : undefined,
           resumeSessionId: options.resume || null,
-          permissionMode: policy.permissionMode,
-          yolo: policy.yolo,
-          write: policy.write,
+          permissionMode: effectivePolicy.permissionMode,
+          yolo: effectivePolicy.yolo,
+          write: effectivePolicy.write,
           streamPartial: Boolean(options["stream-partial"]),
           allowedTools: options["allowed-tools"] || null,
           disallowedTools: options["disallowed-tools"] || null
@@ -375,15 +391,15 @@ async function runEngine(engine, argv) {
           model,
           effort,
           cwd,
-          sandbox: policy.sandbox,
-          approval: policy.approval,
-          yolo: policy.yolo,
-          write: policy.write,
+          sandbox: effectivePolicy.sandbox,
+          approval: effectivePolicy.approval,
+          yolo: effectivePolicy.yolo,
+          write: effectivePolicy.write,
           lastMessagePath,
           ephemeral: Boolean(options.ephemeral),
           search: Boolean(options.search),
-          skipGitRepoCheck: Boolean(options["skip-git-repo-check"]),
-          ignoreUserConfig: policy.ignoreUserConfig,
+          skipGitRepoCheck,
+          ignoreUserConfig: effectivePolicy.ignoreUserConfig,
           resumeSessionId: options.resume || null
         });
 
@@ -406,13 +422,14 @@ async function runEngine(engine, argv) {
       model,
       effort,
       effective: {
-        write: policy.write,
-        bare: policy.bare,
-        hermetic: policy.hermetic,
-        permissionMode: policy.permissionMode,
-        sandbox: policy.sandbox,
-        approval: policy.approval,
-        yolo: policy.yolo
+        write: effectivePolicy.write,
+        bare: effectivePolicy.bare,
+        hermetic: effectivePolicy.hermetic,
+        permissionMode: effectivePolicy.permissionMode,
+        sandbox: effectivePolicy.sandbox,
+        approval: effectivePolicy.approval,
+        yolo: effectivePolicy.yolo,
+        skipGitRepoCheck: engine === "codex" ? skipGitRepoCheck : undefined
       },
       job_id: job?.id,
       session_id: run.sessionId,

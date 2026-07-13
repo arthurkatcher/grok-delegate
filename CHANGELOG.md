@@ -7,9 +7,11 @@ Versioning follows [SemVer](https://semver.org/) for the plugin package (`plugin
 
 ## [Unreleased]
 
-### Added
+### Fixed
 
-- (nothing yet)
+- **Claude Max/OAuth first launch:** RO actions no longer hard-fail when hermetic `--bare` would run without `ANTHROPIC_API_KEY`. Companion auto-drops `--bare` (with a stderr note) unless the user explicitly passed `--bare`.
+- **Codex non-git / home cwd:** outside a git work tree, companion auto-passes `--skip-git-repo-check` so first launch from `$HOME` does not refuse to start.
+- Host docs: launch with Grok background task **`timeout: 0`** so ~20s shell timeouts do not cancel long delegates.
 
 ## [0.1.0] — 2026-07-13
 
