@@ -1,6 +1,6 @@
 # grok-delegate
 
-https://github.com/arthurkatcher/grok-delegate/releases/download/v0.1.0/demo.mp4
+![Install and run demo](docs/demo.gif)
 
 **grok-delegate** is a Grok Build plugin that hands work to local **Claude Code** or **Codex** while you stay in the Grok session. 
 
