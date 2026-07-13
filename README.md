@@ -47,6 +47,8 @@ Common flags for both engines: `--model`, `--effort`, `--cwd`, `--read-only`, `-
 
 ## Install
 
+See [Grok plugins docs](https://docs.x.ai/build/features/skills-plugins-marketplaces) for how plugins and marketplaces work in Grok Build.
+
 You need access to the private GitHub repo `arthurkatcher/grok-delegate`, and `git` or `gh` already authenticated on the machine that runs Grok. The plugin install does **not** log you into Claude, Codex, or Grok itself — those stay separate.
 
 ```bash
