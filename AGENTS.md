@@ -4,7 +4,7 @@ Instructions for coding agents working in **this repository**.
 
 ## What this repo is
 
-Private GitHub marketplace **Grok Build Extras** for Grok Build. One plugin today:
+Public GitHub marketplace **Grok Build Extras** for Grok Build. One plugin today:
 
 | | |
 |--|--|

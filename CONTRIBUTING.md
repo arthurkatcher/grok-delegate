@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping with **grok-delegate**. This repo is the private **Grok Build Extras** marketplace; the installable plugin is `plugins/delegate/`.
+Thanks for helping with **grok-delegate**. This repo is the public **Grok Build Extras** marketplace; the installable plugin is `plugins/delegate/`.
 
 ## Before you start
 

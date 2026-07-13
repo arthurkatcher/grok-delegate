@@ -15,9 +15,9 @@
 
 Please **do not** open a public GitHub issue for security-sensitive findings.
 
-**Preferred (when available):** [GitHub private vulnerability reporting](https://github.com/arthurkatcher/grok-delegate/security/advisories/new) — Security → Advisories → Report a vulnerability. This channel is fully supported for **public** repositories with private reporting enabled; while the repo is private, use email or a collaborator-only advisory.
+**Preferred:** [GitHub private vulnerability reporting](https://github.com/arthurkatcher/grok-delegate/security/advisories/new) — Security → Advisories → Report a vulnerability (enabled on this public repo).
 
-**Always works:** email **apps@kardash.ai** with a subject like `[security] grok-delegate …`.
+**Alternative:** email **apps@kardash.ai** with a subject like `[security] grok-delegate …`.
 
 Include, when you can:
 
