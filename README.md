@@ -186,6 +186,10 @@ The runtime is plain Node ESM with no production npm dependencies. Tests use Nod
 
 See [SECURITY.md](SECURITY.md) for how to report vulnerabilities (private advisory / email). Do not file security-sensitive issues in public trackers.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Coding agents: start with [AGENTS.md](AGENTS.md). User-visible changes go in [CHANGELOG.md](CHANGELOG.md).
+
 ## License
 
 [MIT](LICENSE) © Arthur Katcher
