@@ -221,17 +221,26 @@ export function describeCodexStreamEvent(obj) {
     if (itemType === "command_execution" || item.command) {
       const cmd = item.command || item.command_line || "";
       const short = String(cmd).replace(/\s+/g, " ").slice(0, 100);
-      const exit =
-        item.exit_code ?? item.exitCode ?? item.status ?? item.outcome ?? null;
+      // Match Claude: log tool start only; drop successful completions (no "Bash done").
       if (type === "item.started") {
         return { phase: "tool", message: `Bash ${short}`, kind: "tool_use" };
       }
-      const suffix = exit != null && exit !== "" ? ` exit=${exit}` : "";
-      return {
-        phase: "tool",
-        message: `Bash done ${short}${suffix}`,
-        kind: "tool_use"
-      };
+      // On completed: only surface failures (Claude logs tool_result errors the same way).
+      if (type === "item.completed") {
+        const exit = item.exit_code ?? item.exitCode ?? null;
+        const failed =
+          (typeof exit === "number" && exit !== 0) ||
+          /fail|error|denied/i.test(String(item.status || item.outcome || ""));
+        if (failed) {
+          const suffix = exit != null ? ` exit=${exit}` : "";
+          return {
+            phase: "tool",
+            message: `Bash error ${short}${suffix}`,
+            kind: "tool_result"
+          };
+        }
+      }
+      return null;
     }
     if (itemType === "file_change" || item.path || item.changes) {
       let p = item.path || item.file;

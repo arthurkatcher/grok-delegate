@@ -29,9 +29,11 @@ node "${GROK_PLUGIN_ROOT}/scripts/delegate-companion.mjs" codex --wait --model g
 
 User can always pass `--sandbox …` or `--yolo`. `--read-only` rejects write sandboxes.
 
-## Auth
+## Auth / preflight
 
 `codex login` or `CODEX_API_KEY`. Setup warns if CLI &lt; 0.144 for GPT-5.6.
+
+**Every action** (`setup`, `overview`, `review`, `adversarial`, `rescue`) runs the same readiness check first: Codex binary on `PATH` + login/API key. If not ready, the companion **does not spawn** Codex — it prints the setup-style next steps and exits non-zero.
 
 Raw arguments:
 

@@ -37,9 +37,11 @@ Payload shape: `{ "positionals": ["review", "focus…"], "options": { "model": "
 | rescue | `acceptEdits` + **file tools only** (Read/Edit/Write/Glob/Grep) — **no Bash** |
 | Shell / git CLI | Explicit `--allowed-tools '…,Bash(…)'` or full `--yolo` |
 
-## Auth
+## Auth / preflight
 
 `claude auth login` or `ANTHROPIC_API_KEY`. Setup first if unsure.
+
+**Every action** runs the same readiness check first: `claude` on `PATH` + login/API key/token. If not ready, the companion **does not spawn** Claude — it prints setup-style next steps and exits non-zero.
 
 Raw arguments (agent: re-split carefully; prefer structured payload):
 

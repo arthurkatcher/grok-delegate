@@ -90,13 +90,22 @@ function output(value, asJson) {
   }
 }
 
-function renderSetup(report) {
+/**
+ * Human-readable readiness report (binary + auth + next steps).
+ * Used for `setup` and for preflight blocks on overview/review/rescue.
+ * @param {object} report
+ * @param {{ title?: string, intro?: string|null }} [opts]
+ */
+function renderSetup(report, opts = {}) {
+  const title = opts.title || `${report.engine} setup`;
   const lines = [
-    `# ${report.engine} setup`,
+    `# ${title}`,
     "",
+    opts.intro || null,
+    opts.intro ? "" : null,
     `- ready: ${report.ready}`,
     `- platform: ${process.platform}`,
-    `- binary: ${report.binary?.detail || report.binary?.available}`,
+    `- binary: ${report.binary?.detail || (report.binary?.available ? "ok" : "not found")}`,
     report.version ? `- version: ${report.version}` : null,
     `- auth: ${report.auth?.detail}`,
     `- catalog source: ${report.catalog?.source}`,
@@ -207,18 +216,37 @@ async function runEngine(engine, argv) {
     }
   }
 
+  // Shared readiness gate: binary on PATH + login/API key (same for setup and all runs).
+  const setup =
+    engine === "claude" ? buildClaudeSetupReport(cwd) : buildCodexSetupReport(cwd);
+
   if (action === "setup") {
-    const report =
-      engine === "claude" ? buildClaudeSetupReport(cwd) : buildCodexSetupReport(cwd);
-    output(asJson ? report : renderSetup(report), asJson);
-    process.exitCode = report.ready ? 0 : 1;
+    output(asJson ? setup : renderSetup(setup), asJson);
+    process.exitCode = setup.ready ? 0 : 1;
     return;
   }
 
-  const setup =
-    engine === "claude" ? buildClaudeSetupReport(cwd) : buildCodexSetupReport(cwd);
   if (!setup.ready) {
-    output(asJson ? { ok: false, setup } : renderSetup(setup), asJson);
+    // Do not spawn Claude/Codex — print the same next-steps as setup.
+    if (asJson) {
+      output(
+        {
+          ok: false,
+          error: `${engine} not ready for ${action}`,
+          setup
+        },
+        true
+      );
+    } else {
+      output(
+        renderSetup(setup, {
+          title: `cannot run ${action} — ${engine} not ready`,
+          intro:
+            "Preflight matches `setup`: engine binary on PATH + auth (login or API key). Fix the next steps, then retry."
+        }),
+        false
+      );
+    }
     process.exitCode = 1;
     return;
   }

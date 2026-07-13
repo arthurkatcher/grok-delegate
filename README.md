@@ -1,105 +1,50 @@
 # grok-delegate
 
-**Grok Build is the conductor. Claude Code and Codex are the soloists.**
+**One Grok task. Two local engines. Zero orphaned agents.**
 
-`grok-delegate` is a Grok plugin marketplace that lets you hand hard work to the
-local engines you already trust — without leaving the Grok TUI, without pasting
-transcripts by hand, and without giving every delegate a free shell.
+`grok-delegate` hands work to Claude Code or Codex without handing off the session: live tools in the task log, the result back in Grok, and cancellation that kills the whole process group. Reviews stay read-only by default; Claude rescue gets files, not Bash.
 
-Part of marketplace **[Grok Build Extras](#install)**.
+Part of the private **Grok Build Extras** marketplace.
 
 [![Grok Build](https://img.shields.io/badge/Grok_Build-plugin-111111)](https://grok.x.ai)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-local_CLI-D97757)](https://docs.anthropic.com/en/docs/claude-code)
 [![Codex CLI](https://img.shields.io/badge/Codex-local_CLI-10A37F)](https://github.com/openai/codex)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](plugins/delegate/.grok-plugin/plugin.json)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
----
+## Quick start
 
-## The problem
-
-Grok is excellent at orchestration — planning, stitching context, deciding what
-to try next. Sometimes you still want:
-
-- **Claude Code** for deep repo walks, careful refactors, or long tool loops
-- **Codex** for sandbox-tight execution, Sol/Terra/Luna reasoning, or a second opinion
-
-The usual path is friction: open another terminal, re-explain the task, lose
-Grok’s thread, then paste the answer back. Worse, people “solve” that by giving
-the other agent unrestricted shell on your machine.
-
-## The fix
-
-Two slash commands. One companion process. Live tools in the Grok task log.
+From a repository open in Grok:
 
 ```text
-You (in Grok)
-  → /delegate-claude overview --model sonnet --
-  → Grok starts a background task
-  → node delegate-companion.mjs claude --wait …
-  → Claude streams tools / thinking / writing into the task pane
-  → Cancel the task → SIGTERM kills Claude’s whole process group
+/delegate-claude setup
+/delegate-codex setup
+
+/delegate-claude overview --model sonnet --effort low --trust-project --
+/delegate-codex review --effort high -- focus on auth boundaries
 ```
 
-Same shape for Codex. You stay in Grok. The other model does the legwork. You
-watch progress the same way you watch any Grok background job.
+Expand the background task to watch tool calls, reasoning, and output as they happen. Cancel the task to terminate the delegate's entire process group.
 
-| Slash command | Engine |
-|---------------|--------|
-| `/delegate-claude` | Local [Claude Code](https://docs.anthropic.com/en/docs/claude-code) |
-| `/delegate-codex` | Local [OpenAI Codex CLI](https://github.com/openai/codex) |
-
-**Actions:** `setup` · `overview` · `review` · `adversarial` · `rescue`
-
----
+Claude's read-only actions use hermetic `--bare` mode by default. If you authenticate Claude with OAuth/Claude Max rather than `ANTHROPIC_API_KEY`, add `--trust-project`; bare sessions cannot read OAuth credentials.
 
 ## Install
 
-> This marketplace is published as a **private** GitHub repo. You need access
-> to `arthurkatcher/grok-delegate` and authenticated `git` / `gh` on the machine
-> that runs Grok.
+The marketplace is a private GitHub repository. Your GitHub account must have access to `arthurkatcher/grok-delegate`, and `git` or `gh` must already be authenticated on the machine running Grok.
 
-### 1. Prerequisites
-
-| Need | Notes |
-|------|--------|
-| **Grok Build** | Plugin system enabled |
-| **Node.js 18+** | Companion runtime |
-| **Linux or macOS** | Windows unsupported unless `GROK_DELEGATE_ALLOW_WINDOWS=1` |
-| **`claude` and/or `codex` on `PATH`** | Auth already done (`claude auth login`, Codex login, or API keys) |
-| **Codex ≥ 0.144** | Required for GPT-5.6 Sol / Terra / Luna model ids |
-
-### 2. Add the marketplace
-
-From a shell (GitHub shorthand — clones via your credentials):
+Add **Grok Build Extras**:
 
 ```bash
 grok plugin marketplace add arthurkatcher/grok-delegate
 ```
 
-Equivalents if you prefer an explicit URL:
-
-```bash
-# HTTPS (uses your gh/git credentials for private clone)
-grok plugin marketplace add https://github.com/arthurkatcher/grok-delegate.git
-
-# SSH
-grok plugin marketplace add git@github.com:arthurkatcher/grok-delegate.git
-```
-
-### 3. Install the plugin
-
-Install the **plugin package** (not just the marketplace root):
+Install the plugin package and allow its companion process to run:
 
 ```bash
 grok plugin install arthurkatcher/grok-delegate#plugins/delegate --trust
 ```
 
-`--trust` is required so the companion scripts are allowed to run. Review the
-source first if you want — everything lives under
-[`plugins/delegate/`](plugins/delegate/).
-
-### 4. Enable it
+Then add the plugin to `plugins.enabled` (preserving any existing entries):
 
 ```toml
 # ~/.grok/config.toml
@@ -107,178 +52,134 @@ source first if you want — everything lives under
 enabled = ["grok-delegate"]
 ```
 
-Restart Grok (or reload plugins). Confirm with:
+Restart Grok or reload plugins, then verify the installation:
 
 ```bash
 grok plugin list
 grok plugin details grok-delegate
 ```
 
-### 5. Update later
+If the shorthand clone cannot authenticate, add the marketplace with an explicit remote:
+
+```bash
+# HTTPS; use `gh auth setup-git` for private-repo credentials
+grok plugin marketplace add https://github.com/arthurkatcher/grok-delegate.git
+
+# SSH
+grok plugin marketplace add git@github.com:arthurkatcher/grok-delegate.git
+```
+
+To update later:
 
 ```bash
 grok plugin marketplace update
 grok plugin update grok-delegate
 ```
 
-### Private-repo auth notes
+## Commands
 
-| Symptom | Fix |
-|---------|-----|
-| `Repository not found` / clone fails | Ensure your GitHub user is a collaborator, and `gh auth status` shows a token with `repo` scope |
-| HTTPS clone asks for password | Prefer `gh auth setup-git`, or use the SSH remote |
-| Plugin installs but commands missing | Check `enabled` in `config.toml` and that you installed `#plugins/delegate`, not only the marketplace root |
+The plugin adds `/delegate-claude` and `/delegate-codex`. Both use the same action vocabulary:
 
----
+| Action | What it asks the delegate to do | Write access |
+| --- | --- | --- |
+| `setup` | Check the CLI, authentication, version, and live model catalog | None |
+| `overview` | Map the repository, entry points, and architecture | None |
+| `review` | Review the current Git scope for concrete defects | None |
+| `adversarial` | Re-review with an explicitly skeptical brief | None |
+| `rescue` | Implement a specific task | Yes, constrained as documented below |
 
-## Quick start
-
-In Grok, from a repo you care about:
-
-```text
-/delegate-claude setup
-/delegate-claude overview --model sonnet --trust-project --effort low --
-/delegate-codex overview --model gpt-5.4 --effort low --
-```
-
-**Auth tip (Claude):** hermetic overview defaults to `--bare`, which needs
-`ANTHROPIC_API_KEY`. If you use Claude Max / OAuth only, pass `--trust-project`
-so the session can use your existing login.
-
-**Watch the process:** expand the Grok background task for live lines:
+Pass options before the final `--`; everything after it is focus text, not flags.
 
 ```text
-[10:56:31] starting: session opened model=claude-sonnet-5
-[10:56:34] tool: Glob pattern=*
-[10:56:41] writing: There's already an ARCHITECTURE.md…
-[10:56:55] completed: result received
+# Repository reconnaissance
+/delegate-claude overview --model sonnet --effort low --trust-project -- trace the request path
+/delegate-codex overview --effort low -- map entry points and test boundaries
+
+# Focused review
+/delegate-claude review --model opus --effort high -- inspect auth and session handling
+/delegate-codex adversarial --effort high -- look for rollback and concurrency failures
+
+# Implementation
+/delegate-claude rescue --model opus --effort high -- fix the flaky pagination test
+/delegate-codex rescue --effort medium -- implement the retry helper and run its tests
 ```
 
-Cancel the task any time — that stops the engine, not just the log stream.
+Useful controls include `--model`, `--effort`, `--cwd`, `--read-only`, `--resume`, and `--yolo`. Claude also supports `--trust-project`, `--allowed-tools`, `--disallowed-tools`, `--max-turns`, and `--stream-partial`; Codex supports `--sandbox`, `--approval`, `--search`, and `--ephemeral`.
 
----
+Models and effort levels are discovered from the installed CLIs instead of being frozen in the plugin. Claude discovery does not spend agent tokens unless `CLAUDE_MODELS_AGENT=1` is set.
+
+## Security model
+
+Delegation is local, but it is still code execution. The defaults are deliberately narrow and the escape hatches are explicit.
+
+| Action | Claude Code default | Codex default |
+| --- | --- | --- |
+| `overview`, `review`, `adversarial` | Hermetic `--bare`, `dontAsk`, read tools only | OS `read-only` sandbox |
+| `rescue` | `acceptEdits`; Read, Edit, Write, Glob, and Grep; **no Bash** | OS `workspace-write` sandbox |
+| Full access | Explicit `--allowed-tools` including Bash, or `--yolo` | Explicit `--yolo` |
+
+Important consequences:
+
+- Claude rescue cannot run shell or Git commands unless you opt in. Even scoped Git access can reset, clean, delete branches, or push, so Bash is not part of the default rescue profile.
+- `--trust-project` disables Claude's hermetic default for read-only actions and allows project configuration, hooks, MCP servers, and OAuth credentials to load.
+- Codex uses `approval_policy=never` inside the selected sandbox. `--yolo` bypasses both approvals and the sandbox; it is intentionally loud.
+- Unknown actions and flags fail closed. Free text after `--` cannot turn into options. For complex pasted input, the companion also accepts a structured `--payload-file`.
+- Job state is stored under `~/.local/share/grok-delegate` with private directory permissions, not in a world-writable temporary directory.
+- On cancellation, the companion sends `SIGTERM` to the delegate process group and escalates to `SIGKILL` if necessary, preventing orphaned Claude or Codex processes.
+
+Use the narrowest mode that can complete the task. For a write-capable Claude rescue that truly needs shell access, opt in precisely:
+
+```text
+/delegate-claude rescue --allowed-tools 'Read,Edit,Write,Glob,Grep,Bash' -- fix it and run the targeted tests
+```
 
 ## How it works
 
 ```text
-run_terminal_command({ background: true })
-  → node $GROK_PLUGIN_ROOT/scripts/delegate-companion.mjs <claude|codex> --wait …
-  → NDJSON / JSONL from the engine → progress lines on stdout
-  → Grok task pane shows tool / thinking / writing / completed
-  → Cancel task → companion SIGTERM → kill(-pid) on the engine process group
+/delegate-claude or /delegate-codex
+  -> one Grok background task
+  -> delegate-companion.mjs
+  -> local `claude` stream-json or `codex exec --json`
+  -> normalized progress in the Grok task log
+  -> final result returned to Grok
 ```
 
-| Piece | Role |
-|-------|------|
-| **Slash commands** | `/delegate-claude`, `/delegate-codex` — host contract for Grok |
-| **Companion** | `plugins/delegate/scripts/delegate-companion.mjs` — argv parsing, model discovery, spawn, stream map |
-| **Engines** | Claude: `stream-json` · Codex: `exec --json` |
-| **Jobs** | Optional state under `~/.local/share/grok-delegate` (mode `0700`) |
-| **Skill** | `delegate-runtime` — internal contract so Grok launches correctly |
+The companion owns argument validation, live model discovery, policy selection, process lifecycle, stream normalization, and optional job state. A running task emits concise phases such as `starting`, `thinking`, `tool`, `writing`, `completed`, `retry`, and `failed`.
 
-Models and effort levels are **discovered live** from the installed CLIs (no
-stale hard-coded catalog). Discovery never auto-spends Claude tokens; set
-`CLAUDE_MODELS_AGENT=1` only if you explicitly want agent-assisted model listing.
-
----
-
-## Security model (read this)
-
-Defaults are **retrieval-first for power**, not “full YOLO agent in your home directory.”
-
-| Action | Claude default | Codex default |
-|--------|----------------|---------------|
-| `overview` / `review` / `adversarial` | Hermetic `--bare` + **read** tools (`dontAsk`) | OS **`read-only`** sandbox |
-| `rescue` | **File tools only** — Read / Edit / Write / Glob / Grep · **no Bash** | OS **`workspace-write`** |
-| Shell / full power | Explicit `--allowed-tools '…,Bash'` or `--yolo` | Explicit `--yolo` |
-
-Why no Bash on Claude rescue by default? Even “innocent” git can
-`reset --hard`, `clean -fdx`, force-push, or delete branches. Shell is opt-in.
-
-Other hard edges:
-
-- Free text after `--` **cannot inject flags** (fail-closed argv)
-- Unknown actions / flags **fail closed**
-- Job state is **not** world-writable `/tmp`
-- **Cancel = kill** the engine process group (no orphaned agents)
-- Prefer `--payload-file` for messy paste instead of shell-quoting nightmares
-
-| Want this | Pass |
-|-----------|------|
-| OAuth Claude without API key | `--trust-project` on RO actions |
-| Load project hooks / MCP into Claude | `--trust-project` |
-| Live thinking deltas | `--stream-partial` (Claude) |
-| Shell for rescue | `--allowed-tools 'Read,Edit,Write,Glob,Grep,Bash'` or `--yolo` |
-| Full Codex power | `--yolo` |
-
----
-
-## Examples
-
-```text
-# Health check both CLIs
-/delegate-claude setup
-/delegate-codex setup
-
-# Fast dual discovery (great for watching the task stream)
-/delegate-claude overview --model sonnet --effort low --trust-project --
-/delegate-codex overview --model gpt-5.4 --effort low --
-
-# Careful review
-/delegate-claude review --model opus --effort high --
-/delegate-codex review --model gpt-5.6-sol --effort ultra --sandbox read-only --
-
-# Adversarial second pass
-/delegate-claude adversarial --model sonnet --effort high -- focus on auth and SSRF
-
-# Implement (file edits only for Claude unless you opt into Bash)
-/delegate-claude rescue --model opus --effort high -- fix the flaky pagination test
-/delegate-codex rescue --model gpt-5.4 --effort medium -- implement the retry helper
-```
-
-CLI form Grok’s agent uses under the hood (for debugging / skills):
+The low-level form is useful when debugging the plugin contract:
 
 ```bash
 node "${GROK_PLUGIN_ROOT}/scripts/delegate-companion.mjs" claude --wait \
   --model sonnet --effort low --trust-project \
-  -- overview -- "Quick discovery: purpose, layout, entrypoints."
+  -- overview -- "Map the purpose, layout, and entry points."
 ```
 
----
+## Requirements
 
-## Live log phases
+- Access to the private `arthurkatcher/grok-delegate` repository
+- Grok Build with plugin support
+- Node.js 18 or newer
+- Linux or macOS; Windows is unsupported unless explicitly enabled with `GROK_DELEGATE_ALLOW_WINDOWS=1`
+- `claude`, `codex`, or both on `PATH` and already authenticated
+- Codex 0.144 or newer for GPT-5.6 Sol, Terra, and Luna model IDs
+- Plugin installed with `--trust` and present in `plugins.enabled`
 
-| Phase | Meaning |
-|-------|---------|
-| `starting` | Session / thread opened |
-| `thinking` | Reasoning / thinking blocks (more common at higher effort) |
-| `tool` | Tool call or command |
-| `writing` | Assistant text chunks |
-| `completed` / `failed` | Terminal result |
-| `retry` | Transient API / reconnect |
-
-At `--effort low` you may mostly see tools — that is normal. Raise effort or use
-thinking-heavy models when you want a denser `thinking:` trail.
-
----
+Run `/delegate-claude setup` or `/delegate-codex setup` to inspect the actual local CLI, authentication state, supported models, effort levels, and sandbox modes.
 
 ## Repository layout
 
 ```text
-grok-delegate/                    ← marketplace root (this repo)
-├── marketplace.json              ← "Grok Build Extras"
+grok-delegate/
+├── marketplace.json                 # Grok Build Extras marketplace
+├── plugins/delegate/
+│   ├── .grok-plugin/plugin.json      # plugin manifest
+│   ├── commands/                     # Grok slash commands
+│   ├── skills/delegate-runtime/      # host execution contract
+│   ├── scripts/                      # companion and engine adapters
+│   └── tests/                        # unit and CLI integration tests
 ├── LICENSE
-├── README.md
-└── plugins/
-    └── delegate/                 ← the installable Grok plugin
-        ├── .grok-plugin/plugin.json
-        ├── commands/             ← /delegate-claude, /delegate-codex
-        ├── skills/delegate-runtime/
-        ├── scripts/              ← companion + engine adapters
-        └── tests/
+└── README.md
 ```
-
----
 
 ## Development
 
@@ -288,34 +189,8 @@ cd grok-delegate/plugins/delegate
 npm test
 ```
 
-Unit + companion CLI tests use Node’s built-in test runner (`node --test`).
-No production npm dependencies — pure Node ESM.
-
----
-
-## Requirements (checklist)
-
-- [ ] Access to private repo `arthurkatcher/grok-delegate`
-- [ ] Grok Build with plugins enabled
-- [ ] Node 18+
-- [ ] Linux or macOS
-- [ ] `claude` and/or `codex` on `PATH`, authenticated
-- [ ] Codex ≥ 0.144 if you want Sol / Terra / Luna ids
-- [ ] Plugin installed with `--trust` and listed in `plugins.enabled`
-
----
+The runtime is pure Node ESM with no production npm dependencies. Tests use Node's built-in test runner.
 
 ## License
 
-MIT © Arthur Katcher — see [LICENSE](LICENSE).
-
----
-
-## Why this exists
-
-Grok should stay the orchestrator. The best local CLIs should stay *local* —
-with sandboxes, kill-on-cancel, and defaults that don’t hand a silent
-`Bash(git …)` to a rescue agent at 2am.
-
-If you can see the tools stream, cancel the task, and trust the permission
-table above, you’re using this the way it was meant to be used.
+[MIT](LICENSE) © 2026 Arthur Katcher.

@@ -86,13 +86,31 @@ describe("resolveEffortAgainstCatalog", () => {
 });
 
 describe("describeCodexStreamEvent", () => {
-  it("maps command execution", () => {
+  it("maps command execution start only", () => {
     const ev = describeCodexStreamEvent({
       type: "item.started",
       item: { type: "command_execution", command: "ls -la" }
     });
     assert.equal(ev.kind, "tool_use");
     assert.match(ev.message, /Bash/);
+    assert.doesNotMatch(ev.message, /done/i);
+  });
+
+  it("drops successful Bash completion (like Claude, no tool-done noise)", () => {
+    const ev = describeCodexStreamEvent({
+      type: "item.completed",
+      item: { type: "command_execution", command: "ls -la", exit_code: 0 }
+    });
+    assert.equal(ev, null);
+  });
+
+  it("logs Bash completion only on failure", () => {
+    const ev = describeCodexStreamEvent({
+      type: "item.completed",
+      item: { type: "command_execution", command: "false", exit_code: 1 }
+    });
+    assert.equal(ev.kind, "tool_result");
+    assert.match(ev.message, /Bash error/);
   });
 
   it("maps reasoning items to thinking phase", () => {
