@@ -6,7 +6,7 @@ The delegate runs as a normal background task: tools and progress stream into th
 
 This repository is the **Grok Build Extras** marketplace. The installable plugin package is under `plugins/delegate/`.
 
-[![Demo thumbnail — click for full video](assets/demo-poster.jpg)](https://github.com/arthurkatcher/grok-delegate/releases/download/v0.1.0/demo.mp4)
+[![Demo: install and run grok-delegate](assets/demo.gif)](https://github.com/arthurkatcher/grok-delegate/releases/download/v0.1.0/demo.mp4)
 
 **[▶ Full demo (MP4, ~49s)](https://github.com/arthurkatcher/grok-delegate/releases/download/v0.1.0/demo.mp4)** · also in-repo as [`assets/demo.mp4`](assets/demo.mp4)
 
