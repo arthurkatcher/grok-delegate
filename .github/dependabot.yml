@@ -1,0 +1,14 @@
+# Keep dependency noise low: this plugin has no production npm deps today.
+# Alerts still help if package.json grows or Actions are added later.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/plugins/delegate"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
