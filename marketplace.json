@@ -1,6 +1,6 @@
 {
-  "name": "Arthur Katcher Plugins",
-  "description": "Plugins by Arthur Katcher for Grok Build (Claude Code + Codex CLI delegation)",
+  "name": "Grok Build Extras",
+  "description": "Extra plugins for Grok Build — starting with local Claude Code and Codex CLI delegation",
   "owner": {
     "name": "Arthur Katcher"
   },

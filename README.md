@@ -6,7 +6,7 @@
 local engines you already trust — without leaving the Grok TUI, without pasting
 transcripts by hand, and without giving every delegate a free shell.
 
-Part of marketplace **[Arthur Katcher Plugins](#install)**.
+Part of marketplace **[Grok Build Extras](#install)**.
 
 [![Grok Build](https://img.shields.io/badge/Grok_Build-plugin-111111)](https://grok.x.ai)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-local_CLI-D97757)](https://docs.anthropic.com/en/docs/claude-code)
@@ -266,7 +266,7 @@ thinking-heavy models when you want a denser `thinking:` trail.
 
 ```text
 grok-delegate/                    ← marketplace root (this repo)
-├── marketplace.json              ← "Arthur Katcher Plugins"
+├── marketplace.json              ← "Grok Build Extras"
 ├── LICENSE
 ├── README.md
 └── plugins/
