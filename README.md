@@ -1,9 +1,5 @@
 # grok-delegate
 
-<p align="center">
-  <img src="assets/cover.png" alt="grok-delegate" width="100%" />
-</p>
-
 **grok-delegate** is a Grok Build plugin that hands work to local **Claude Code** or **Codex** while you stay in the Grok session. The delegate runs as a normal background task: tools and progress stream into the task log, the result comes back when it finishes, and canceling the task stops the engine’s whole process group so nothing is left orphaned.
 
 This private repository is the **Grok Build Extras** marketplace. The installable plugin package is under `plugins/delegate/`.
