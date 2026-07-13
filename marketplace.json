@@ -1,0 +1,17 @@
+{
+  "name": "Arthur Katcher Plugins",
+  "description": "Plugins by Arthur Katcher for Grok Build (Claude Code + Codex CLI delegation)",
+  "owner": {
+    "name": "Arthur Katcher"
+  },
+  "plugins": [
+    {
+      "name": "grok-delegate",
+      "description": "Delegate to local Claude Code or Codex via /delegate-claude and /delegate-codex",
+      "version": "0.1.0",
+      "source": "./plugins/delegate",
+      "category": "development",
+      "keywords": ["claude", "codex", "delegate"]
+    }
+  ]
+}

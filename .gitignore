@@ -1,0 +1,31 @@
+# Dependencies / caches
+node_modules/
+.npm/
+.cache/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# Logs / local junk
+*.log
+.logs/
+tmp/
+temp/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+token.key
+
+# Test / coverage artifacts
+coverage/
+.nyc_output/
+
+# Local job state should never live in-repo
+.grok-delegate/
