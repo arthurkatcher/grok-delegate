@@ -6,9 +6,6 @@ The delegate runs as a normal background task: tools and progress stream into th
 
 This repository is the **Grok Build Extras** marketplace. The installable plugin package is under `plugins/delegate/`.
 
-
-
-
 [![Grok Build](https://img.shields.io/badge/Grok_Build-plugin-111111)](https://grok.x.ai)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-local_CLI-D97757)](https://docs.anthropic.com/en/docs/claude-code)
 [![Codex CLI](https://img.shields.io/badge/Codex-local_CLI-10A37F)](https://github.com/openai/codex)
