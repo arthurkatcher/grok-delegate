@@ -1,3 +1,5 @@
+
+
 # grok-delegate
 
 **grok-delegate** is a Grok Build plugin that hands work to local **Claude Code** or **Codex** while you stay in the Grok session.
@@ -178,6 +180,12 @@ grok-delegate/                   marketplace root (this repo)
 git clone git@github.com:arthurkatcher/grok-delegate.git
 cd grok-delegate/plugins/delegate
 npm test
+```
+
+Optional: validate the Grok plugin package layout (requires `grok` CLI on `PATH`):
+```bash
+cd ..
+grok plugin validate plugins/delegate
 ```
 
 The runtime is plain Node ESM with no production npm dependencies. Tests use Node’s built-in test runner (`node --test`).
